@@ -1,0 +1,6 @@
+# The compiled read binary is 58MB and platform-specific — never ship it in the
+# npm tarball. npx users get the Node read-path fallback (dist/read.js); the fast
+# binary is delivered per-platform via GitHub Releases (see build:binary).
+dist/telepathy-read
+spike/
+test/

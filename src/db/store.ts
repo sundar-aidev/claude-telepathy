@@ -1,14 +1,10 @@
 import { readFileSync } from "node:fs";
 import { mkdirSync } from "node:fs";
-import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
+import { dataDir } from "../core/paths.js";
 import type { SessionDigest } from "../core/types.js";
-
-export function dataDir(): string {
-  return process.env.TELEPATHY_DIR ?? join(homedir(), ".claude-telepathy");
-}
 
 export function openStore(dbPath = join(dataDir(), "index.db")): Database.Database {
   mkdirSync(dirname(dbPath), { recursive: true });

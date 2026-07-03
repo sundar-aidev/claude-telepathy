@@ -2,7 +2,7 @@
 import { findSessions, listSessions, openStore } from "./db/store.js";
 import { runHook } from "./hooks/handler.js";
 import { backfill } from "./index-cmd.js";
-import { install, uninstall } from "./install.js";
+import { hasCompiledReader, install, uninstall } from "./install.js";
 
 const [, , cmd, ...args] = process.argv;
 
@@ -16,6 +16,11 @@ async function main(): Promise<void> {
       const { sessions, ms } = await backfill();
       console.log(`✓ hooks installed → ${path}`);
       console.log(`✓ backfilled ${sessions} sessions in ${(ms / 1000).toFixed(1)}s`);
+      console.log(
+        hasCompiledReader()
+          ? "✓ read path: compiled binary (fast)"
+          : "• read path: Node fallback (run `npm run build:binary` with bun for the fast path)",
+      );
       console.log("Restart running Claude sessions to activate. New sessions join automatically.");
       return;
     }

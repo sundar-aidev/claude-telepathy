@@ -1,9 +1,11 @@
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, mkdirSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { renderRescueBrief } from "../core/brief.js";
+import { briefsDir, dataDir, rescueBriefPath } from "../core/paths.js";
+import { rescueOutput } from "../core/rescue.js";
 import { parseTranscript } from "../core/transcript.js";
 import type { HookPayload } from "../core/types.js";
-import { dataDir, openStore, upsertDigest } from "../db/store.js";
+import { openStore, upsertDigest } from "../db/store.js";
 
 /**
  * Single entrypoint for all write-path hooks. Reads the payload from stdin,
@@ -35,6 +37,9 @@ async function dispatch(p: HookPayload): Promise<void> {
         "INSERT INTO snapshots (session_id, trigger, created_at, payload) VALUES (?, ?, datetime('now'), ?)",
       ).run(p.session_id, p.trigger ?? null, JSON.stringify(digest));
       db.close();
+      // Write-renders / read-reads: pre-render the rescue brief to a flat file
+      // NOW so the read path (compiled binary) never touches the DB.
+      writeBriefAtomic(rescueBriefPath(p.session_id), renderRescueBrief(digest));
       break;
     }
     case "PostCompact": {
@@ -59,34 +64,23 @@ async function dispatch(p: HookPayload): Promise<void> {
       break;
     }
     case "SessionStart": {
-      // Read path placeholder: v1 ships a compiled binary here (<50ms budget).
-      // The TS handler only serves `source=compact` rescue until then.
-      if (p.source === "compact") {
-        const db = openStore();
-        const snap = db
-          .prepare(
-            "SELECT payload FROM snapshots WHERE session_id = ? ORDER BY created_at DESC LIMIT 1",
-          )
-          .get(p.session_id) as { payload: string } | undefined;
-        db.close();
-        if (snap) {
-          const d = JSON.parse(snap.payload);
-          const brief = renderRescueBrief(d);
-          process.stdout.write(
-            JSON.stringify({
-              hookSpecificOutput: {
-                hookEventName: "SessionStart",
-                additionalContext: brief,
-              },
-            }),
-          );
-        }
-      }
+      // Node fallback for the read path (the compiled binary is primary) — same
+      // pure decision function, so both paths behave identically.
+      const out = rescueOutput(p);
+      if (out) process.stdout.write(out);
       break;
     }
     default:
       break; // unknown events ignored, fail-open
   }
+}
+
+/** Atomic flat-file write (temp + rename) so a concurrent read never sees a partial brief. */
+function writeBriefAtomic(dest: string, content: string): void {
+  mkdirSync(briefsDir(), { recursive: true });
+  const tmp = `${dest}.${process.pid}.tmp`;
+  writeFileSync(tmp, content);
+  renameSync(tmp, dest);
 }
 
 function readStdin(): Promise<string> {

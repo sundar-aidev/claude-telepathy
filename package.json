@@ -8,10 +8,11 @@
     "claude-telepathy": "dist/cli.js",
     "telepathy": "dist/cli.js"
   },
-  "files": ["dist", "src/db/schema.sql", "README.md", "LICENSE"],
+  "files": ["dist/**/*.js", "dist/db/schema.sql", "README.md", "LICENSE"],
   "engines": { "node": ">=20" },
   "scripts": {
     "build": "tsc -p tsconfig.json && cp src/db/schema.sql dist/db/schema.sql",
+    "build:binary": "bun build src/read.ts --compile --minify --outfile dist/telepathy-read",
     "check": "biome check src test && tsc --noEmit",
     "test": "vitest run",
     "dev": "tsx src/cli.ts"
