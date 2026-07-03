@@ -27,6 +27,6 @@
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"
   },
-  "repository": { "type": "git", "url": "https://github.com/sundar/claude-telepathy" },
+  "repository": { "type": "git", "url": "https://github.com/sundar-aidev/claude-telepathy" },
   "keywords": ["claude-code", "memory", "compaction", "context", "sessions", "hooks"]
 }
