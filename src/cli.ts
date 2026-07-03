@@ -65,28 +65,39 @@ async function main(): Promise<void> {
       const q = args.join(" ");
       if (!q) return usage();
       const db = openStore();
-      const hits = findSessions(db, q, 4);
+      const hits = findSessions(db, q, 5);
       db.close();
       if (hits.length === 0) {
         console.log(`No past session mentions "${q}".`);
         return;
       }
-      const top = hits[0] as (typeof hits)[number];
-      const excerpt = await bestExcerpt(top.transcript_path, q.split(/\s+/));
-      console.log(
-        `↩ From "${top.ai_title ?? top.last_prompt ?? top.session_id.slice(0, 8)}" · ${(top.last_ts ?? "").slice(0, 10)} · ${shortCwd(top.cwd) ?? "-"}\n`,
-      );
-      console.log(
-        excerpt
-          ? clip(excerpt, 900)
-          : "(session matched, but no text answer found — open it to review)",
-      );
-      if (hits.length > 1) {
+      const terms = q.split(/\s+/);
+      const label = (h: (typeof hits)[number]) =>
+        h.ai_title || h.last_prompt || h.session_id.slice(0, 8);
+      // Fall through empty/aborted top matches to the first session that has a
+      // real answer — a strongly-ranked-but-empty session shouldn't dead-end recall.
+      let answer: { hit: (typeof hits)[number]; excerpt: string } | null = null;
+      for (const h of hits) {
+        const ex = await bestExcerpt(h.transcript_path, terms);
+        if (ex) {
+          answer = { hit: h, excerpt: ex };
+          break;
+        }
+      }
+      if (answer) {
+        const h = answer.hit;
         console.log(
-          `\nAlso in: ${hits
-            .slice(1)
-            .map((h) => h.ai_title ?? h.session_id.slice(0, 8))
-            .join(" · ")}`,
+          `↩ From "${clip(label(h), 70)}" · ${(h.last_ts ?? "").slice(0, 10)} · ${shortCwd(h.cwd) ?? "-"}\n`,
+        );
+        console.log(clip(answer.excerpt, 900));
+        const others = hits.filter((x) => x.session_id !== h.session_id);
+        if (others.length > 0) {
+          console.log(`\nAlso in: ${others.map((x) => clip(label(x), 40)).join(" · ")}`);
+        }
+      } else {
+        const top = hits[0] as (typeof hits)[number];
+        console.log(
+          `Matched "${clip(label(top), 70)}" (${(top.last_ts ?? "").slice(0, 10)}) but no session had a substantive answer — the top match may have been aborted or empty.`,
         );
       }
       return;
