@@ -52,6 +52,7 @@ export function upsertDigest(db: Database.Database, d: SessionDigest): void {
 
 export interface SessionRow {
   session_id: string;
+  transcript_path: string;
   cwd: string | null;
   git_branch: string | null;
   name: string | null;
