@@ -1,0 +1,32 @@
+{
+  "name": "claude-telepathy",
+  "version": "0.0.1",
+  "description": "One brain for all your Claudes — compaction rescue, session continuity, and recall for Claude Code. Unofficial; not affiliated with Anthropic.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "claude-telepathy": "dist/cli.js",
+    "telepathy": "dist/cli.js"
+  },
+  "files": ["dist", "src/db/schema.sql", "README.md", "LICENSE"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && cp src/db/schema.sql dist/db/schema.sql",
+    "check": "biome check src test && tsc --noEmit",
+    "test": "vitest run",
+    "dev": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "repository": { "type": "git", "url": "https://github.com/sundar/claude-telepathy" },
+  "keywords": ["claude-code", "memory", "compaction", "context", "sessions", "hooks"]
+}

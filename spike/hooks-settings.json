@@ -1,0 +1,6 @@
+{"hooks":{
+ "SessionStart":[{"matcher":"","hooks":[{"type":"command","command":"/Users/sundar/ai/claude-telepathy/spike/capture.sh SessionStart"}]}],
+ "PreCompact":[{"matcher":"","hooks":[{"type":"command","command":"/Users/sundar/ai/claude-telepathy/spike/capture.sh PreCompact"}]}],
+ "PostCompact":[{"matcher":"","hooks":[{"type":"command","command":"/Users/sundar/ai/claude-telepathy/spike/capture.sh PostCompact"}]}],
+ "SessionEnd":[{"matcher":"","hooks":[{"type":"command","command":"/Users/sundar/ai/claude-telepathy/spike/capture.sh SessionEnd"}]}]
+}}
