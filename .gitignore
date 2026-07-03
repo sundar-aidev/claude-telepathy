@@ -4,3 +4,4 @@ dist/
 .DS_Store
 spike/hook-captures/
 spike/spike-session-id
+spike/demo-repo/

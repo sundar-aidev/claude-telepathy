@@ -1,5 +1,6 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { renderRescueBrief } from "../core/brief.js";
 import { parseTranscript } from "../core/transcript.js";
 import type { HookPayload } from "../core/types.js";
 import { dataDir, openStore, upsertDigest } from "../db/store.js";
@@ -86,23 +87,6 @@ async function dispatch(p: HookPayload): Promise<void> {
     default:
       break; // unknown events ignored, fail-open
   }
-}
-
-function renderRescueBrief(d: {
-  aiTitle?: string;
-  lastPrompt?: string;
-  filesEdited?: string[];
-  sessionId?: string;
-}): string {
-  const lines = [
-    "── TELEPATHY · COMPACTION RESCUE ──",
-    d.aiTitle ? `Task: ${d.aiTitle}` : null,
-    d.lastPrompt ? `Last user request: ${d.lastPrompt}` : null,
-    d.filesEdited?.length ? `Files in flight: ${d.filesEdited.slice(-5).join(", ")}` : null,
-    `Full pre-compact state: telepathy show ${d.sessionId?.slice(0, 8) ?? ""}`,
-    "───────────────────────────────────",
-  ];
-  return lines.filter(Boolean).join("\n");
 }
 
 function readStdin(): Promise<string> {
